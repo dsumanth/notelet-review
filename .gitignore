@@ -5,3 +5,13 @@ xcuserdata/
 DerivedData/
 .swiftpm/
 Package.resolved
+
+# Android
+android/.gradle/
+android/build/
+android/**/build/
+android/local.properties
+android/.idea/
+android/.kotlin/
+*.iml
+captures/
