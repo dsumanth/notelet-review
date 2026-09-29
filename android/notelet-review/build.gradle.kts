@@ -11,6 +11,7 @@ android {
 
     defaultConfig {
         minSdk = 24
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildFeatures {
@@ -44,7 +45,7 @@ afterEvaluate {
                 // JitPack sets GROUP and VERSION from the repo and tag.
                 groupId = System.getenv("GROUP") ?: "ai.nimblocity"
                 artifactId = "notelet-review"
-                version = System.getenv("VERSION") ?: "1.0.0"
+                version = System.getenv("VERSION") ?: "1.1.1"
             }
         }
     }
