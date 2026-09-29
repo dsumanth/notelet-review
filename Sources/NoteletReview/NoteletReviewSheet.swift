@@ -15,6 +15,8 @@ struct NoteletReviewSheet: ViewModifier {
     let onDismiss: () -> Void
     let configuration: NoteletConfiguration
     let userDefaults: UserDefaults
+    let canRequestReview: () -> Bool
+    let onReviewRequested: () -> Void
 
     @Environment(\.requestReview) private var requestReview
     /// Captured before Notelet marks the current version as seen, so a
@@ -43,6 +45,7 @@ struct NoteletReviewSheet: ViewModifier {
         let now = Date()
         let shouldAsk = ReviewPromptPolicy.shouldRequestReview(
             wasAutoPresented: version == .current,
+            hostAllowsReview: canRequestReview(),
             previouslySeenVersion: previouslySeenVersion,
             currentVersion: currentVersion,
             lastPromptedVersion: store.lastPromptedVersion,
@@ -53,6 +56,7 @@ struct NoteletReviewSheet: ViewModifier {
         guard shouldAsk else { return }
 
         store.recordPrompt(version: currentVersion, at: now)
+        onReviewRequested()
         Task { @MainActor in
             try? await Task.sleep(for: Self.promptDelay)
             requestReview()
@@ -68,12 +72,20 @@ extension View {
     /// request only fires when the sheet was shown automatically for an app
     /// update (`version: .current`), at most once per version and at least
     /// two weeks apart. See `ReviewPromptPolicy` for the full rule set.
+    ///
+    /// - Parameters:
+    ///   - canRequestReview: Return `false` to skip the request, for example
+    ///     when the app asked for a review recently from another screen.
+    ///   - onReviewRequested: Called when the request is made, so the app can
+    ///     count it against its own review budget.
     public func noteletReviewSheet(
         notes: [NoteletVersionNotes],
         version: NoteletPresentedVersion? = nil,
         onDismiss: @escaping () -> Void = { },
         configuration: NoteletConfiguration = .init(),
-        userDefaults: UserDefaults = .standard
+        userDefaults: UserDefaults = .standard,
+        canRequestReview: @escaping () -> Bool = { true },
+        onReviewRequested: @escaping () -> Void = { }
     ) -> some View {
         modifier(
             NoteletReviewSheet(
@@ -81,7 +93,9 @@ extension View {
                 version: version,
                 onDismiss: onDismiss,
                 configuration: configuration,
-                userDefaults: userDefaults
+                userDefaults: userDefaults,
+                canRequestReview: canRequestReview,
+                onReviewRequested: onReviewRequested
             )
         )
     }

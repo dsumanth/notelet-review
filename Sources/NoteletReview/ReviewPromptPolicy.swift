@@ -12,6 +12,9 @@ import Foundation
 /// - Apple's "Requesting App Store reviews" sample: ask at most once per
 ///   app version.
 ///
+/// `hostAllowsReview` lets the app veto the request, so it can share one
+/// review budget with prompts it triggers elsewhere.
+///
 /// The system also caps the prompt at 3 displays per 365 days and may show
 /// nothing at all, which is why this is a request, never a guarantee.
 enum ReviewPromptPolicy {
@@ -19,13 +22,14 @@ enum ReviewPromptPolicy {
 
     static func shouldRequestReview(
         wasAutoPresented: Bool,
+        hostAllowsReview: Bool,
         previouslySeenVersion: String?,
         currentVersion: String,
         lastPromptedVersion: String?,
         lastPromptDate: Date?,
         now: Date
     ) -> Bool {
-        guard wasAutoPresented else { return false }
+        guard wasAutoPresented, hostAllowsReview else { return false }
         guard let previouslySeenVersion, previouslySeenVersion != currentVersion else { return false }
         guard lastPromptedVersion != currentVersion else { return false }
         guard let lastPromptDate else { return true }

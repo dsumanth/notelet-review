@@ -14,6 +14,9 @@ package ai.nimblocity.noteletreview
  * - Avoid pestering: at least two weeks between requests (HIG).
  * - At most once per app version (Apple's "Requesting App Store reviews" sample).
  *
+ * `hostAllowsReview` lets the app veto the request, so it can share one
+ * review budget with prompts it triggers elsewhere.
+ *
  * Play also enforces its own quota and may show nothing, which is why this
  * is a request, never a guarantee.
  */
@@ -22,13 +25,14 @@ internal object ReviewPromptPolicy {
 
     fun shouldRequestReview(
         wasAutoPresented: Boolean,
+        hostAllowsReview: Boolean,
         previouslySeenVersion: String?,
         currentVersion: String,
         lastPromptedVersion: String?,
         lastPromptAtMillis: Long?,
         nowMillis: Long,
     ): Boolean {
-        if (!wasAutoPresented) return false
+        if (!wasAutoPresented || !hostAllowsReview) return false
         if (previouslySeenVersion == null || previouslySeenVersion == currentVersion) return false
         if (lastPromptedVersion == currentVersion) return false
         if (lastPromptAtMillis == null) return true

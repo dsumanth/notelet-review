@@ -21,6 +21,10 @@ private const val PROMPT_DELAY_MILLIS = 2_000L
  * an app update ([PresentedVersion.Current]), at most once per version and
  * at least two weeks apart. See [ReviewPromptPolicy] for the full rule set.
  *
+ * [canRequestReview] lets the app skip the request (for example when it asked
+ * recently from another screen) and [onReviewRequested] lets it count the
+ * request against its own review budget.
+ *
  * Styling comes from the host app's `MaterialTheme` unless overridden in
  * [configuration].
  */
@@ -30,6 +34,8 @@ fun NoteletReviewSheet(
     version: PresentedVersion?,
     onDismiss: () -> Unit = {},
     configuration: NoteletConfiguration = NoteletConfiguration(),
+    canRequestReview: () -> Boolean = { true },
+    onReviewRequested: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -49,6 +55,7 @@ fun NoteletReviewSheet(
             val now = System.currentTimeMillis()
             val shouldAsk = ReviewPromptPolicy.shouldRequestReview(
                 wasAutoPresented = version == PresentedVersion.Current,
+                hostAllowsReview = canRequestReview(),
                 previouslySeenVersion = previouslySeenVersion,
                 currentVersion = currentVersion,
                 lastPromptedVersion = store.lastPromptedVersion,
@@ -58,6 +65,7 @@ fun NoteletReviewSheet(
             previouslySeenVersion = currentVersion
             if (shouldAsk) {
                 store.recordPrompt(currentVersion, now)
+                onReviewRequested()
                 scope.launch {
                     delay(PROMPT_DELAY_MILLIS)
                     PlayReviewRequester.request(context)

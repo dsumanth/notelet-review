@@ -18,6 +18,15 @@ object NoteletStorage {
             .apply()
     }
 
+    /**
+     * Mark an arbitrary version as seen. Use it once when adopting the library,
+     * so existing users count as updaters (and can be asked for a review)
+     * instead of fresh installs.
+     */
+    fun markVersionAsSeen(context: Context, version: String) {
+        preferences(context).edit().putString(KEY_LATEST_SEEN_APP_VERSION, version).apply()
+    }
+
     /** Clear the seen version so the next [PresentedVersion.Current] shows again. For debugging. */
     fun resetSeenVersion(context: Context) {
         preferences(context).edit().remove(KEY_LATEST_SEEN_APP_VERSION).apply()

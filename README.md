@@ -152,12 +152,52 @@ NoteletReviewSheet(
 )
 ```
 
+## Sharing a review budget with the rest of your app
+
+If your app also asks for reviews elsewhere, pass the two hooks so the release notes moment joins your own pacing instead of competing with it. Both platforms take the same pair:
+
+```swift
+.noteletReviewSheet(
+    notes: RELEASE_NOTES,
+    version: .current,
+    canRequestReview: { MyReviewPacer.shared.isEligible() },
+    onReviewRequested: { MyReviewPacer.shared.recordAttempt() }
+)
+```
+
+```kotlin
+NoteletReviewSheet(
+    notes = releaseNotes,
+    version = PresentedVersion.Current,
+    canRequestReview = { reviewPacer.isEligible() },
+    onReviewRequested = { reviewPacer.recordAttempt() },
+)
+```
+
+`canRequestReview` can only veto; the built-in rules above always apply too.
+
 ## New users
 
 When onboarding finishes, mark the current version as seen so new users only see notes (and the prompt) on their next update:
 
 - iOS: `NoteletStorage.markCurrentVersionAsSeen()`
 - Android: `NoteletStorage.markCurrentVersionAsSeen(context)`
+
+### Adopting in an app that already has users
+
+Before this package, nobody has a "seen version", so every existing user looks like a fresh install: they get the notes but never the review request. Run a one-time seed at launch, before the sheet appears:
+
+```swift
+if NoteletStorage.getLatestSeenAppVersion() == nil {
+    if userHasUsedTheAppBefore {
+        NoteletStorage.markVersionAsSeen("pre-notelet")  // counts as an update
+    } else {
+        NoteletStorage.markCurrentVersionAsSeen()         // new user: no notes this version
+    }
+}
+```
+
+Android has the same calls with a `context` first argument.
 
 `resetSeenVersion` on either platform helps while debugging.
 

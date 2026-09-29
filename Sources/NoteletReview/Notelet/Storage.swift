@@ -13,6 +13,13 @@ public final class NoteletStorage {
         )
     }
 
+    /// Mark an arbitrary version as seen. Use it once when adopting the
+    /// package, so existing users count as updaters (and can be asked for a
+    /// review) instead of fresh installs.
+    public static func markVersionAsSeen(_ version: String, userDefaults: UserDefaults = .standard) {
+        userDefaults.set(version, forKey: NoteletStorageKey.latestSeenAppVersion)
+    }
+
     /// Clear the persisted "latest seen version" so the next `.current`
     /// presentation triggers regardless of bundle version.
     ///

@@ -14,8 +14,10 @@ class ReviewPromptPolicyTest {
         currentVersion: String = "1.1",
         lastPromptedVersion: String? = null,
         lastPromptAtMillis: Long? = null,
+        hostAllowsReview: Boolean = true,
     ) = ReviewPromptPolicy.shouldRequestReview(
         wasAutoPresented = wasAutoPresented,
+        hostAllowsReview = hostAllowsReview,
         previouslySeenVersion = previouslySeenVersion,
         currentVersion = currentVersion,
         lastPromptedVersion = lastPromptedVersion,
@@ -26,6 +28,8 @@ class ReviewPromptPolicyTest {
     @Test fun asksAfterAutoShownNotesForAnUpdatingUser() = assertTrue(decide())
 
     @Test fun neverAsksAfterNotesOpenedManually() = assertFalse(decide(wasAutoPresented = false))
+
+    @Test fun neverAsksWhenTheHostAppVetoes() = assertFalse(decide(hostAllowsReview = false))
 
     @Test fun neverAsksOnFreshInstall() = assertFalse(decide(previouslySeenVersion = null))
 

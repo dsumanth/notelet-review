@@ -11,10 +11,12 @@ import Testing
         previouslySeenVersion: String? = "1.0",
         currentVersion: String = "1.1",
         lastPromptedVersion: String? = nil,
-        lastPromptDate: Date? = nil
+        lastPromptDate: Date? = nil,
+        hostAllowsReview: Bool = true
     ) -> Bool {
         ReviewPromptPolicy.shouldRequestReview(
             wasAutoPresented: wasAutoPresented,
+            hostAllowsReview: hostAllowsReview,
             previouslySeenVersion: previouslySeenVersion,
             currentVersion: currentVersion,
             lastPromptedVersion: lastPromptedVersion,
@@ -32,6 +34,11 @@ import Testing
         #expect(!decide(wasAutoPresented: false))
     }
 
+    @Test func neverAsksWhenTheHostAppVetoes() {
+        // Lets an app share one review budget with its other prompts.
+        #expect(!decide(hostAllowsReview: false))
+    }
+
     @Test func neverAsksOnFreshInstall() {
         // HIG: don't ask on first launch or during onboarding.
         #expect(!decide(previouslySeenVersion: nil))
@@ -45,6 +52,19 @@ import Testing
         // HIG: avoid pestering, allow a week or two between requests.
         #expect(!decide(lastPromptedVersion: "1.0", lastPromptDate: now.addingTimeInterval(-13 * day)))
         #expect(decide(lastPromptedVersion: "1.0", lastPromptDate: now.addingTimeInterval(-14 * day)))
+    }
+}
+
+@Suite struct NoteletStorageTests {
+    @Test func marksAnArbitraryVersionAsSeen() {
+        // Apps adopting the package mark existing users as updaters.
+        let name = "NoteletStorageTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name)!
+        defaults.removePersistentDomain(forName: name)
+
+        NoteletStorage.markVersionAsSeen("legacy", userDefaults: defaults)
+
+        #expect(NoteletStorage.getLatestSeenAppVersion(userDefaults: defaults) == "legacy")
     }
 }
 
