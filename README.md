@@ -47,7 +47,7 @@ Everything can be overridden with `NoteletConfiguration`: button labels, accent,
 
 ## iOS
 
-Requires iOS 17. In Xcode: **File > Add Package Dependencies...**, enter this repo's URL, and add `NoteletReview` to your app target.
+Requires iOS 17. In Xcode: **File > Add Package Dependencies...**, enter `https://github.com/dsumanth/notelet-review`, and add `NoteletReview` to your app target.
 
 ```swift
 import SwiftUI
@@ -101,7 +101,7 @@ Requires minSdk 24 and Compose Material 3. Through [JitPack](https://jitpack.io)
 maven("https://jitpack.io")
 
 // app/build.gradle.kts
-implementation("com.github.<your-github-user>:notelet-review:<tag>")
+implementation("com.github.dsumanth:notelet-review:1.0.0")
 ```
 
 Or include the module from a local checkout:
